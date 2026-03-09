@@ -1312,13 +1312,17 @@ document.addEventListener('DOMContentLoaded', function () {
     return _audioCtx;
   }
 
-  /* 预取 Apple 原版键盘点击音效的原始字节（页面加载时，不需要 AudioContext） */
+  /* 预取 Apple 原版键盘点击音效的原始字节（Base64内嵌，兼容file://协议） */
   var _snapRawAB  = null;  // 原始 ArrayBuffer
   var _snapBuffer = null;  // 解码后的 AudioBuffer（首次播放后缓存）
-  fetch('key_press_click.wav')
-    .then(function(r) { return r.arrayBuffer(); })
-    .then(function(ab) { _snapRawAB = ab; })
-    .catch(function() {});
+  (function() {
+    var b64 = 'UklGRq4BAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YYoBAAAAAAAAAAAAAAAAAAAAAAAAAAD//AAI//EANf5u9p3sDd8v0YbP5dR22injJu0c+GgDpQ5lF9sfdyTTJ5onvCVAIHcZvBGOCIn/SPZs7oHoC+Nf4L7gQuHY5U/qYfCf95X+xAWvC+oRDhTRFwgXoxaqFEIQ2QytB7YCUvzb97PzJu+B7P7rvuvZ7UXv3/N499X8pwGaBmAKow4lEKgSDhI+ET8PJQwbCFQEFf+m+1T3ZPQT8Z/wI++28FfyAPSH97/7a/9PAywGvgnMDCYNpQ49DeUMpgqbB+8EygFt/hD62/gk9fj0gPPT8/H02vZ0+KD7Ov4MAO0DqAYNCAEJXwoQChsJfQhFBo0EdwIt/8/9jPuF+eD4rPf/9934Pvko+nP8Cf3X/60BdAMSBGQFYAXzBhwF4AVCBFUDLAHhAI//RP4X/SP8bvwF++P8Cfxy/Qz9zP6f/3EAPADxAXwB3gISAhoB+AG4AWEBAACeAET//P/I/6r/pv+5/9oAAAAAAAAAAAAAAAAAAAAA';
+    var bin = atob(b64);
+    var ab = new ArrayBuffer(bin.length);
+    var view = new Uint8Array(ab);
+    for (var i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
+    _snapRawAB = ab;
+  })();
 
   function playSnapSound() {
     if (!window.__snapSoundEnabled) return;
