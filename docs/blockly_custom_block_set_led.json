@@ -1,0 +1,26 @@
+{
+  "type": "hardware_set_led",
+  "message0": "设置 LED PIN %1 STATE %2",
+  "args0": [
+    {
+      "type": "field_dropdown",
+      "name": "PIN",
+      "options": [
+        ["1", "1"],
+        ["2", "2"],
+        ["3", "3"],
+        ["4", "4"]
+      ]
+    },
+    {
+      "type": "input_value",
+      "name": "STATE",
+      "check": "Boolean"
+    }
+  ],
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 160,
+  "tooltip": "控制 LED 灯的开关，指定引脚与开/关状态",
+  "helpUrl": ""
+}
