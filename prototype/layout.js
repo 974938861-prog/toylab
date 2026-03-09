@@ -232,9 +232,11 @@ document.addEventListener('DOMContentLoaded', function () {
   var inspoNavItems = document.querySelectorAll('.inspo-nav-item');
   var inspoPageTitle = document.querySelector('.inspo-page-title');
   var categoryLabels = {
-    all: '全部案例', robot: '机器人', iot: '物联网',
-    led: '灯光与显示', sensor: '传感器', car: '智能小车',
-    audio: '音乐与声音', favorites: '我的收藏', recent: '最近浏览'
+    all: '全部玩具', car: '玩具车', game: '游戏机',
+    boardgame: '桌游', pet: '宠物玩具', tool: '工具',
+    peripheral: '电脑周边', appliance: '家电',
+    favorites: '我的收藏', recent: '最近浏览',
+    'my-purchases': '我的购买', 'my-designs': '我的设计'
   };
   inspoNavItems.forEach(function (item) {
     item.addEventListener('click', function () {

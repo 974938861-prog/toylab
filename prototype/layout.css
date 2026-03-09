@@ -1226,12 +1226,12 @@ body.device-connected .canvas-node.output-led .node-led-recess,
 }
 
 .library-group summary::before {
-  content: "? ";
+  content: "▸ ";
   margin-right: 4px;
 }
 
 .library-group[open] summary::before {
-  content: "? ";
+  content: "▾ ";
 }
 
 .module-list {
