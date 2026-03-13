@@ -1,0 +1,70 @@
+{% extends "sqladmin/layout.html" %}
+{% block content_header %}
+<div class="row align-items-center">
+  <div class="col">
+    <h2 class="page-title">工作台</h2>
+    <div class="page-pretitle">与用户端「发现 / 零件商城 / 工作室 / 我的」对应的数据概览</div>
+  </div>
+</div>
+{% endblock %}
+{% block content %}
+<div class="col-12">
+  <div class="row row-deck row-cards mb-3">
+    {% for card in main_cards %}
+    <div class="col-sm-6 col-lg-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="subheader">{{ card.label }}</div>
+          </div>
+          <div class="h1 mb-0">{{ card.value }}</div>
+          <div class="text-muted">{{ card.desc }}</div>
+        </div>
+        <div class="card-footer">
+          <a href="{{ card.url }}" class="btn btn-sm btn-outline-primary">管理</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="row row-deck row-cards mb-3">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-sm">
+        <div class="card-body">
+          <span class="text-muted">评论</span>
+          <div class="h2 mb-0">{{ stats.comments }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-sm">
+        <div class="card-body">
+          <span class="text-muted">收藏</span>
+          <div class="h2 mb-0">{{ stats.favorites }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card card-sm">
+        <div class="card-body">
+          <span class="text-muted">购物车条数</span>
+          <div class="h2 mb-0">{{ stats.cart_items }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">快捷入口</h3>
+    </div>
+    <div class="card-body">
+      <p class="text-muted mb-2">左侧菜单可进入各管理页，此处按模块汇总：</p>
+      <div class="d-flex flex-wrap gap-2">
+        {% for link in links %}
+        <a href="{{ link.url }}" class="btn btn-outline-primary">{{ link.name }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
