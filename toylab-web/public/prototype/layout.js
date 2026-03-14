@@ -33,8 +33,16 @@ document.addEventListener('DOMContentLoaded', function () {
     if (el) el.addEventListener('click', function () { setView(item.view); });
   });
 
-  // 默认进入发现页
-  setView('inspo');
+  // 根据 URL 参数决定初始视图（如 ?view=studio&embed=1 时直接进入工作室）
+  var initialView = 'inspo';
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var viewParam = params.get('view');
+    if (viewParam && ALL_VIEWS.indexOf('view-' + viewParam) !== -1) {
+      initialView = viewParam;
+    }
+  } catch (e) {}
+  setView(initialView);
 
   // 商城页面 — 左侧分类切换（含二级子项）
   var shopNavItems = document.querySelectorAll('#shopPage [data-shop-category]');

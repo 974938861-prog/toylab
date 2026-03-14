@@ -7,6 +7,16 @@
   <link rel="stylesheet" href="layout.css?v=39" />
 </head>
 <body>
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('embed') === '1') {
+        var style = document.createElement('style');
+        style.textContent = '.top-bar{ display:none !important; }';
+        (document.head || document.documentElement).appendChild(style);
+      }
+    })();
+  </script>
   <!-- ???????????????????????????????? -->
   <svg width="0" height="0" aria-hidden="true">
     <defs>
@@ -37,9 +47,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         <span>工作室</span>
       </button>
-      <button type="button" class="btn-topbar-nav" id="btnMakeX" title="MakeX竞赛">
+      <button type="button" class="btn-topbar-nav" id="btnMakeX" title="MakeX赛事">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>
-        <span>MakeX竞赛</span>
+        <span>MakeX赛事</span>
       </button>
       <button type="button" class="btn-topbar-nav" title="社区">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="10" r="2.5"/><path d="M15.5 20c0-2.5 1.1-4.5 2.5-4.5s2.5 2 2.5 4.5"/></svg>
@@ -813,7 +823,7 @@
         </ul>
       </div>
       <div class="inspo-sidebar-section">
-        <div class="inspo-sidebar-label">我的</div>
+        <div class="inspo-sidebar-label">社区</div>
         <ul class="inspo-nav-list">
           <li class="inspo-nav-item" data-category="my-purchases">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>我的购买
@@ -1752,17 +1762,5 @@ def on_loop():
   </div>
 
   <script src="layout.js"></script>
-  <script>
-    if (location.search.indexOf('view=studio') !== -1) {
-      setTimeout(function() {
-        var btn = document.getElementById('btnStudio');
-        if (btn) btn.click();
-      }, 150);
-    }
-    if (location.search.indexOf('embed=1') !== -1) {
-      var topBar = document.querySelector('.top-bar');
-      if (topBar) topBar.style.display = 'none';
-    }
-  </script>
 </body>
 </html>

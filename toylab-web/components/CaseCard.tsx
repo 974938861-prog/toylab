@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import type { Case } from "@/lib/types";
 const PLACEHOLDER = "/images/placeholder-case.svg";
@@ -11,31 +11,72 @@ interface CaseCardProps {
   isFavorited?: boolean;
 }
 
+const coverMediaStyle: React.CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  objectPosition: "center",
+};
+
 export default function CaseCard({ case_, onFavorite, isFavorited }: CaseCardProps) {
   const [coverError, setCoverError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const creator = case_.creator;
-  const avatarLetter = (creator?.nickname || creator?.username || "U").charAt(0).toUpperCase();
-  const avatarColor = creator?.avatar_color || "#7C3AED";
   const coverSrc =
     coverError || !case_.cover_url ? PLACEHOLDER : case_.cover_url;
+  const hasCoverVideo = !!case_.cover_video_url;
+  const isGif = hasCoverVideo && case_.cover_video_url!.toLowerCase().endsWith(".gif");
 
   return (
-    <Link href={`/case/${case_.id}`} className="inspo-card" style={{ textDecoration: "none" }}>
-      <div className="inspo-card-img" style={{ position: "relative", overflow: "hidden" }}>
+    <Link href={`/case/${case_.id}`} className="inspo-card" style={{ textDecoration: "none" }} prefetch={false}>
+      <div
+        className="inspo-card-img"
+        style={{ position: "relative", overflow: "hidden" }}
+        onMouseEnter={() => {
+          setIsHovered(true);
+          if (hasCoverVideo && !isGif && videoRef.current) videoRef.current.play();
+        }}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          if (hasCoverVideo && !isGif && videoRef.current) videoRef.current.pause();
+        }}
+      >
         <img
           src={coverSrc}
           alt=""
           className="inspo-card-img-cover"
           style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center",
+            ...coverMediaStyle,
+            opacity: isHovered && hasCoverVideo ? 0 : 1,
+            transition: "opacity 0.2s ease",
           }}
           onError={() => setCoverError(true)}
         />
+        {hasCoverVideo && isHovered && (
+          <>
+            {isGif ? (
+              <img
+                src={case_.cover_video_url!}
+                alt=""
+                className="inspo-card-img-cover"
+                style={coverMediaStyle}
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                src={case_.cover_video_url!}
+                muted
+                loop
+                playsInline
+                className="inspo-card-img-cover"
+                style={coverMediaStyle}
+              />
+            )}
+          </>
+        )}
         <button
           className={`inspo-fav-btn ${isFavorited ? "active" : ""}`}
           title="收藏"
@@ -55,10 +96,7 @@ export default function CaseCard({ case_, onFavorite, isFavorited }: CaseCardPro
           <div className="inspo-card-info-left">
             <div className="inspo-card-title">{case_.title}</div>
             <div className="inspo-card-designer">
-              <span className="inspo-avatar" style={{ background: avatarColor }}>
-                {avatarLetter}
-              </span>
-              {creator?.nickname || creator?.username || "匿名"}
+              {case_.creator_display_name || creator?.nickname || creator?.username || "匿名"}
             </div>
           </div>
           <div className="inspo-card-info-right">

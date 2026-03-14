@@ -29,6 +29,7 @@ class Case(Base):
     creator_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id"), index=True
     )
+    creator_display_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     view_count: Mapped[int] = mapped_column(Integer, default=0)
     sales_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(
@@ -37,6 +38,10 @@ class Case(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now(), onupdate=func.now()
     )
+    designer_story: Mapped[str | None] = mapped_column(Text, nullable=True)
+    demo_video_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    preview_3d_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    cover_video_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     creator = relationship("User")
     bom_items = relationship("CaseBomItem", back_populates="case", cascade="all, delete-orphan")
@@ -68,6 +73,7 @@ class CaseBomItem(Base):
     unit_price: Mapped[float] = mapped_column(Numeric(10, 2), default=0)
     required_qty: Mapped[int] = mapped_column(Integer, default=1)
     doc_url: Mapped[str | None] = mapped_column(String(500))
+    model_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     product_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("products.id")

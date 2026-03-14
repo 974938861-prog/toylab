@@ -1,0 +1,39 @@
+# 依赖
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# 环境与密钥
+.env
+.env.local
+.env.*.local
+*.pem
+
+# 构建与缓存
+.next/
+out/
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# 上传与本地数据
+uploads/
+*.sqlite
+*.db
+
+# IDE 与系统
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# 日志与临时
+*.log
+.cache/
+tmp/
+temp/

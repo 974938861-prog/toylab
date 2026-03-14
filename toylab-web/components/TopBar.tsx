@@ -54,7 +54,7 @@ export default function TopBar() {
   return (
     <header className="top-bar">
       <div className="top-bar-left">
-        <Link href="/discover" className="app-logo" aria-label="ToyLab Home">
+        <Link href="/discover" className="app-logo" aria-label="ToyLab Home" prefetch={false}>
           <svg className="app-logo-svg" viewBox="0 0 403.12 371.64" fill="currentColor">
             <g><g>
               <path d="M206.79,338.16H134.24c0-5.18.41-10.25-.12-15.21A61.65,61.65,0,0,0,131,308.74a50.42,50.42,0,0,0-20.43-26c-17.12-11.05-34.72-11.26-52.26-1.67A49.67,49.67,0,0,0,38,302.59a53.54,53.54,0,0,0-5.88,28.83,7.67,7.67,0,0,1-.16,1,59.56,59.56,0,0,1-5.86-3.58C10.53,316.76,2.2,300.76.33,281.25a68.37,68.37,0,0,1,4.79-32.86,64.1,64.1,0,0,1,10.63-17.55c4.59-5.35,10-9.4,16-13.18,7.61-4.86,15.88-6.63,24.58-7.42a3.51,3.51,0,0,0,.74-.32v-3q0-45,0-90.08a119.44,119.44,0,0,1,8.12-44.44,110.91,110.91,0,0,1,14.6-26.68A127.4,127.4,0,0,1,102,22.93c5.28-4.21,11.19-7.17,17-10.52,11-6.43,23.17-8.92,35.48-11,1.47-.24,3-.31,4.45-.43C163.4.63,168-.2,172.43,0c6.58.37,13.12,1.38,19.65,2.34a80.84,80.84,0,0,1,23.75,6.88,148.4,148.4,0,0,1,20.86,11.8A101.57,101.57,0,0,1,259,42.69C270,57.12,277.86,73,280.92,91c1.39,8.14,2.69,16.41,2.78,24.64.34,30.27.16,60.55.17,90.82v3c6,1,11.66,1.6,17.19,2.84,9.65,2.17,17.51,7.78,24.38,14.53,3.81,3.75,6.57,8.6,9.65,13.06a3.86,3.86,0,0,0,3.53,1.95c3.93.16,8,.27,11.71,1.46,10.56,3.37,16.55,11.08,18.6,21.82,1.93,10.1-.26,19-7.36,26.87-5.71,6.31-12.59,9-20.81,9.24a2.59,2.59,0,0,0-1.94,1.31,56.36,56.36,0,0,1-11,18.09c-4.52,5.09-9.67,9.49-16,12.28-1,.46-2.1.87-3.47,1.43,0-3,.17-5.73,0-8.41-.83-11.25-3.81-21.7-10.83-30.88a52.36,52.36,0,0,0-13.08-12.3c-16.9-11-34.6-11.54-51.81-1.91-14.33,8-22.93,21-25.78,37.5a50.93,50.93,0,0,0-.16,17.8A19.84,19.84,0,0,1,206.79,338.16ZM181,38.59V210h71.7c.06-.68.14-1.16.14-1.65,0-29.44.06-58.88,0-88.32a87,87,0,0,0-12.59-45.58A71.79,71.79,0,0,0,220.37,52.9,101.32,101.32,0,0,0,202.73,43C196,40.05,188.59,39.13,181,38.59ZM342.62,293.31c12.07-2.25,20.21-10.57,19.18-23.86-1-13-11.11-19.72-19.18-19.06Z"/>
@@ -71,7 +71,7 @@ export default function TopBar() {
 
       <nav className="top-bar-nav">
         {NAV_ITEMS.map((item) => (
-          <Link key={item.href} href={item.href}
+          <Link key={item.href} href={item.href} prefetch={false}
             className={`btn-topbar-nav ${pathname.startsWith(item.href) ? "btn-topbar-nav--active" : ""}`}>
             {item.icon}
             <span>{item.label}</span>
@@ -82,7 +82,7 @@ export default function TopBar() {
       <div className="top-bar-right">
         <div className="topbar-divider" />
         <span className="topbar-icon-wrap">
-          <Link href="/settings" className="btn-settings" title="设置" aria-label="设置">
+          <Link href="/settings" className="btn-settings" title="设置" aria-label="设置" prefetch={false}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </Link>
         </span>
@@ -94,7 +94,7 @@ export default function TopBar() {
             </button>
           </span>
         ) : (
-          <Link href="/login" className="topbar-icon-wrap btn-login" title="登录" aria-label="登录">
+          <Link href="/login" className="topbar-icon-wrap btn-login" title="登录" aria-label="登录" prefetch={false}>
             <span aria-hidden>登录</span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           </Link>

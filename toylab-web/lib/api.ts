@@ -1,5 +1,7 @@
 const TOKEN_KEY = "toylab_token";
 const FETCH_TIMEOUT_MS = 12000;
+/** 案例接口超时（超时后结束转圈并提示） */
+const CASE_FETCH_TIMEOUT_MS = 8000;
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -17,7 +19,25 @@ export function clearToken() {
 function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = FETCH_TIMEOUT_MS): Promise<Response> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  const externalSignal = options.signal;
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(t);
+      return Promise.reject(new DOMException("Aborted", "AbortError"));
+    }
+    externalSignal.addEventListener("abort", () => {
+      clearTimeout(t);
+      ctrl.abort();
+    });
+  }
   return fetch(url, { ...options, signal: ctrl.signal }).finally(() => clearTimeout(t));
+}
+
+/** 后端直连地址（.env.local 中 NEXT_PUBLIC_API_URL），直连时可避免 Next 代理异常 */
+function getApiBase(): string {
+  if (typeof window === "undefined") return "";
+  const u = process.env.NEXT_PUBLIC_API_URL;
+  return u ? String(u).replace(/\/$/, "") : "";
 }
 
 export async function apiFetch(path: string, options: RequestInit = {}) {
@@ -29,7 +49,17 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  return fetchWithTimeout(`/api${path}`, { ...options, headers });
+  const base = getApiBase();
+  let url = base ? `${base}/api${path}` : `/api${path}`;
+  // 案例列表与详情禁用缓存并加时间戳，确保编辑后刷新能看到最新数据
+  const isCaseRequest = path.startsWith("/cases");
+  if (isCaseRequest) {
+    const sep = path.includes("?") ? "&" : "?";
+    url += `${sep}_t=${Date.now()}`;
+  }
+  const opts = isCaseRequest ? { ...options, cache: "no-store" as RequestCache } : options;
+  const timeout = isCaseRequest ? CASE_FETCH_TIMEOUT_MS : FETCH_TIMEOUT_MS;
+  return fetchWithTimeout(url, { ...opts, headers }, timeout);
 }
 
 /** 上传文件（封面等）由 service 提供，相对路径需拼上 origin 才能加载 */

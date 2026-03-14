@@ -17,6 +17,13 @@ th { background: #f8fafc; font-weight: 600; }
 .nav { display: flex; gap: 1rem; padding: 1rem; background: #1e293b; color: #fff; margin-bottom: 1rem; }
 .nav a { color: #e2e8f0; }
 .cover-preview { max-height: 120px; max-width: 200px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 4px; }
+.form-h1 { font-size: 1.25rem; font-weight: 700; color: #0f172a; margin: 1.75rem 0 0.25rem 0; }
+.form-h1:first-of-type { margin-top: 0; }
+.form-h1-desc { font-size: 0.875rem; color: #64748b; margin: 0 0 1rem 0; }
+.form-subsection { margin-bottom: 1.25rem; }
+.form-section-title { font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0 0 0.75rem 0; padding-bottom: 0.35rem; border-bottom: 1px solid #e2e8f0; }
+.form-table { margin: 0; }
+.form-table input { width: 100%; min-width: 0; }
 
 /* 管理后台布局：左侧边栏 + 主内容区 */
 .admin-layout { display: flex; min-height: 100vh; }
@@ -28,15 +35,26 @@ th { background: #f8fafc; font-weight: 600; }
   padding: 0 1rem 1rem; font-weight: 700; font-size: 1.1rem; color: #fff; border-bottom: 1px solid #334155; margin-bottom: 1rem;
 }
 .admin-sidebar-nav { flex: 1; padding: 0 0.5rem; }
-.admin-sidebar-nav a {
-  display: block; padding: 0.6rem 1rem; color: #94a3b8; text-decoration: none; border-radius: 6px; margin-bottom: 2px;
+/* 一级：工作台 */
+.admin-sidebar-nav > a {
+  display: block; padding: 0.6rem 1rem; font-size: 15px; font-weight: 700;
+  color: #e2e8f0; text-decoration: none; border-radius: 6px; margin-bottom: 2px;
 }
-.admin-sidebar-nav a:hover { background: #334155; color: #e2e8f0; }
-.admin-sidebar-nav a.active { background: #2563eb; color: #fff; }
+.admin-sidebar-nav > a:hover { background: #334155; color: #fff; }
+.admin-sidebar-nav > a.active { background: #2563eb; color: #fff; }
+/* 一级：分组标题（用户管理、发现管理等） */
 .admin-sidebar-group {
-  display: block; padding: 0.75rem 1rem 0.25rem; font-size: 11px; font-weight: 600;
-  color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;
+  display: block; padding: 0.75rem 1rem 0.25rem; font-size: 14px; font-weight: 700;
+  color: #cbd5e1; letter-spacing: 0.02em;
 }
+/* 二级：分组下的链接 */
+.admin-sidebar-section { margin-bottom: 0.25rem; }
+.admin-sidebar-section a {
+  display: block; padding: 0.5rem 1rem 0.5rem 1.25rem; font-size: 13px; font-weight: 400;
+  color: #94a3b8; text-decoration: none; border-radius: 6px; margin-bottom: 2px;
+}
+.admin-sidebar-section a:hover { background: #334155; color: #e2e8f0; }
+.admin-sidebar-section a.active { background: #2563eb; color: #fff; }
 .admin-sidebar-footer { padding: 1rem 0.5rem 0; border-top: 1px solid #334155; }
 .admin-sidebar-logout {
   width: 100%; padding: 0.5rem 1rem; background: transparent; border: 1px solid #475569; color: #94a3b8;

@@ -33,11 +33,11 @@ export default function CommentSection({ comments, targetType, targetId, userId,
 
   return (
     <section className="cd-section">
-      <h2 className="cd-section-title">评论 ({comments.length})</h2>
+      <h2 className="cd-section-title">大家都在说</h2>
       {userId && (
         <form className="comment-form" onSubmit={handleSubmit}>
-          <input type="text" className="comment-input" placeholder="写下你的评论..." value={content} onChange={(e) => setContent(e.target.value)} />
-          <button type="submit" className="comment-submit" disabled={submitting || !content.trim()}>{submitting ? "发送中..." : "发表"}</button>
+          <input type="text" className="comment-input" placeholder="发表评论..." value={content} onChange={(e) => setContent(e.target.value)} />
+          <button type="submit" className="comment-submit" disabled={submitting || !content.trim()}>{submitting ? "发送中..." : "发送"}</button>
         </form>
       )}
       {comments.length === 0 ? (

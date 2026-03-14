@@ -15,7 +15,6 @@ export default function SopSteps({ steps }: SopStepsProps) {
       <div>
         {steps.map((step) => (
           <div key={step.id} className="sop-step">
-            <div className="sop-step-number">{step.step_number}</div>
             <div className="sop-step-content">
               <div className="sop-step-title">{step.title}</div>
               {step.description && <div className="sop-step-desc">{step.description}</div>}

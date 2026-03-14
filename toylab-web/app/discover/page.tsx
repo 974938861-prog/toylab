@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import type { Case } from "@/lib/types";
 import { apiFetch } from "@/lib/api";
 import CaseCard from "@/components/CaseCard";
@@ -17,20 +17,67 @@ const CATEGORIES = [
   { slug: "tool", label: "工具", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> },
   { slug: "peripheral", label: "电脑周边", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg> },
   { slug: "appliance", label: "家电", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 3H8l-2 4h12l-2-4z"/><circle cx="12" cy="14" r="2"/></svg> },
+  { slug: "lamp", label: "灯具", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18h6M10 22h4M12 2a5 5 0 0 0-5 5v4a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7a5 5 0 0 0-10 0v4a2 2 0 0 0 2 2h.5"/><circle cx="12" cy="11" r="1"/></svg> },
+  { slug: "instrument", label: "乐器", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><path d="m9 9 12-2"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> },
 ];
 
 type SortOption = "latest" | "popular" | "most_favorited" | "most_viewed";
 
+/** 模块级：保底计时器触发时更新「当前挂载的」发现页实例，避免 Strict Mode 下更新到已卸载实例 */
+const discoverFailsafeRef = { current: null as (() => void) | null };
+let discoverFailsafeTimer: ReturnType<typeof setTimeout> | null = null;
+const FAILSAFE_MS = 3000;
+
 export default function DiscoverPage() {
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failsafe, setFailsafe] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("latest");
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [userId, setUserId] = useState<string | null>(null);
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadSucceededRef = useRef(false);
 
-  useEffect(() => { loadCases(); loadUser(); }, []);
+  useEffect(() => {
+    const applyFailsafe = () => {
+      setFailsafe(true);
+      setLoading(false);
+      setLoadTimedOut(true);
+    };
+    discoverFailsafeRef.current = applyFailsafe;
+    if (discoverFailsafeTimer) clearTimeout(discoverFailsafeTimer);
+    discoverFailsafeTimer = setTimeout(() => {
+      discoverFailsafeTimer = null;
+      discoverFailsafeRef.current?.();
+      discoverFailsafeRef.current = null;
+    }, FAILSAFE_MS);
+    return () => {
+      discoverFailsafeRef.current = null;
+    };
+  }, []);
+
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    setLoadTimedOut(false);
+    setLoadError(null);
+    loadSucceededRef.current = false;
+    const ac = new AbortController();
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+      if (!loadSucceededRef.current) setLoadTimedOut(true);
+    }, 8000);
+    loadCases(ac.signal);
+    loadUser();
+    return () => {
+      mountedRef.current = false;
+      ac.abort();
+      clearTimeout(safetyTimer);
+    };
+  }, []);
 
   async function loadUser() {
     try {
@@ -48,16 +95,37 @@ export default function DiscoverPage() {
     } catch {}
   }
 
-  async function loadCases() {
+  async function loadCases(signal?: AbortSignal) {
+    if (!mountedRef.current) return;
     setLoading(true);
+    setLoadError(null);
+    loadSucceededRef.current = false;
+    const fallback = setTimeout(() => setLoading(false), 8000);
     try {
-      const res = await apiFetch("/cases");
-      const data = await res.json();
-      if (Array.isArray(data)) setCases(data as Case[]);
-    } catch {
-      setCases([]);
+      const res = await apiFetch("/cases", { signal });
+      if (!mountedRef.current) return;
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && Array.isArray(data)) {
+        setCases(data as Case[]);
+        loadSucceededRef.current = true;
+        setLoadTimedOut(false);
+      } else {
+        setCases([]);
+        loadSucceededRef.current = true;
+        const msg = (data && typeof data.detail === "string") ? data.detail : (data?.detail?.[0]?.msg ?? `HTTP ${res.status}`);
+        setLoadError(`请求失败：${msg}`);
+      }
+    } catch (e) {
+      if (mountedRef.current) {
+        setCases([]);
+        loadSucceededRef.current = true;
+        const msg = e instanceof Error && e.name === "AbortError" ? "请求被取消" : "网络错误或连接超时，请确认 toylab-service 已启动（端口 8001）";
+        setLoadError(msg);
+      }
+    } finally {
+      clearTimeout(fallback);
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function toggleFavorite(caseId: string) {
@@ -101,8 +169,18 @@ export default function DiscoverPage() {
             <div className="inspo-sort"><span>排序</span><select className="inspo-sort-select" value={sort} onChange={(e) => setSort(e.target.value as SortOption)}><option value="latest">最新</option><option value="popular">最热</option><option value="most_favorited">最多收藏</option><option value="most_viewed">最多浏览</option></select></div>
           </div>
         </div>
-        {loading ? <div className="loading-spinner" /> : filteredCases.length === 0 ? (
-          <div className="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15h8M9 9h.01M15 9h.01"/></svg><div className="empty-state-text">暂无案例</div></div>
+        {(loading && !failsafe) ? <div className="loading-spinner" /> : filteredCases.length === 0 ? (
+          <div className="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15h8M9 9h.01M15 9h.01"/></svg>
+            <div className="empty-state-text">
+              {loadError ?? (loadTimedOut ? "加载超时，请确认 toylab-service 已启动（端口 8001）" : "暂无案例")}
+            </div>
+            {(loadError || loadTimedOut) && (
+              <button type="button" className="lib-btn" style={{ marginTop: 12 }} onClick={() => { setLoadError(null); setLoadTimedOut(false); setLoading(true); loadCases(); }}>
+                重试
+              </button>
+            )}
+          </div>
         ) : (
           <div className="inspo-grid">{filteredCases.map((c) => <CaseCard key={c.id} case_={c} isFavorited={favorites.has(c.id)} onFavorite={toggleFavorite} />)}</div>
         )}

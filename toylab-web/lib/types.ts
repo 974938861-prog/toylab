@@ -50,10 +50,14 @@ export interface Case {
   is_free: boolean;
   is_published: boolean;
   creator_id: string;
+  creator_display_name?: string | null;
   view_count: number;
   sales_count: number;
   created_at: string;
   updated_at: string;
+  designer_story?: string | null;
+  demo_video_url?: string | null;
+  cover_video_url?: string | null;
   creator?: Profile;
 }
 
@@ -66,6 +70,7 @@ export interface CaseBomItem {
   unit_price: number;
   required_qty: number;
   doc_url: string | null;
+  model_url?: string | null;
   sort_order: number;
   product_id: string | null;
 }

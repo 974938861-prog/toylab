@@ -3317,6 +3317,11 @@ details[open] > summary .shop-nav-chevron {
 .shop-nav-sub-item.active svg { opacity: 1 !important; }
 
 /* ???????? */
+/* 商城卡片图区：与发现页一致的 16/9，4 列时自动变扁 */
+article.inspo-card.shop-card .inspo-card-img {
+  aspect-ratio: 16 / 9 !important;
+  height: auto !important;
+}
 .shop-card-img { position: relative; }
 .shop-card-img--mcu,
 .shop-card-img--power,
