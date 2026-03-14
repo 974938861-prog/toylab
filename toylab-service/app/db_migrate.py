@@ -30,6 +30,9 @@ async def ensure_case_columns_async(database_url: str) -> None:
         ("creator_display_name", "ALTER TABLE cases_ ADD COLUMN creator_display_name VARCHAR(200)" if not is_sqlite else "ALTER TABLE cases_ ADD COLUMN creator_display_name TEXT"),
         ("cover_video_url", "ALTER TABLE cases_ ADD COLUMN cover_video_url VARCHAR(500)" if not is_sqlite else "ALTER TABLE cases_ ADD COLUMN cover_video_url TEXT"),
     ]
+    products_cols = [
+        ("is_published", "ALTER TABLE products ADD COLUMN is_published TINYINT(1) NOT NULL DEFAULT 0" if not is_sqlite else "ALTER TABLE products ADD COLUMN is_published INTEGER NOT NULL DEFAULT 0"),
+    ]
     async with engine.begin() as conn:
         for name, stmt in cases_cols:
             try:
@@ -51,4 +54,14 @@ async def ensure_case_columns_async(database_url: str) -> None:
                 pass
             else:
                 logger.warning("db_migrate: model_url %s", e)
+        for name, stmt in products_cols:
+            try:
+                await conn.execute(text(stmt))
+                logger.info("db_migrate: added column %s", name)
+            except Exception as e:
+                err = str(e).lower()
+                if "duplicate" in err or "already exists" in err or "duplicate column" in err:
+                    pass
+                else:
+                    logger.warning("db_migrate: %s %s", name, e)
     await engine.dispose()

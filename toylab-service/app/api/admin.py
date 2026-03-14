@@ -83,8 +83,8 @@ def _case_dict(c: Case, creator: User | None = None) -> dict:
 
 class CaseCreate(BaseModel):
     title: str
-    slug: str
-    creator_id: str
+    slug: str = ""
+    creator_id: str = ""
     cover_url: str | None = None
     description: str | None = None
     difficulty: str | None = None
@@ -218,12 +218,15 @@ async def admin_create_case(
     db: AsyncSession = Depends(get_db),
     _admin: dict = Depends(get_current_admin),
 ):
-    """管理端：新建案例"""
+    """管理端：新建案例。creator_id 为空时自动使用当前登录管理员的 ID。"""
     from app.models.case import Case as CaseModel
+    creator_id = (body.creator_id or "").strip() or _admin.get("sub") or _admin.get("id") or ""
+    if not creator_id:
+        raise HTTPException(status_code=400, detail="无法获取创作者 ID，请重新登录")
     case = CaseModel(
         title=body.title,
         slug=body.slug or "",
-        creator_id=body.creator_id,
+        creator_id=creator_id,
         cover_url=body.cover_url,
         description=body.description,
         difficulty=body.difficulty,
@@ -246,8 +249,27 @@ async def admin_create_case(
         raw = ",".join(encoded)
     case.slug = f"{case.id}|{raw}" if raw else case.id
     await db.flush()
-    await db.refresh(case)
+    result2 = await db.execute(
+        select(Case).options(joinedload(Case.creator)).where(Case.id == case.id)
+    )
+    case = result2.unique().scalar_one_or_none() or case
     return _case_dict(case)
+
+
+@router.delete("/cases/{case_id}")
+async def admin_delete_case(
+    case_id: str,
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(get_current_admin),
+):
+    """管理端：删除案例（同时删除关联的 BOM、步骤、资源、开发日志）"""
+    result = await db.execute(select(Case).where(Case.id == case_id))
+    case = result.scalar_one_or_none()
+    if not case:
+        raise HTTPException(status_code=404, detail="案例未找到")
+    await db.delete(case)
+    await db.flush()
+    return {"ok": True}
 
 
 @router.put("/cases/{case_id}/steps")
@@ -809,6 +831,26 @@ async def admin_upload_demo_video(
     return {"url": f"/uploads/cases/demo_video/{filename}"}
 
 
+@router.post("/upload/product-cover")
+async def admin_upload_product_cover(
+    file: UploadFile = File(...),
+    _admin: dict = Depends(get_current_admin),
+):
+    """管理端：上传零件封面图，返回可用的 cover_url（相对路径）。"""
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="文件为空")
+    ext = (Path(file.filename).suffix if file.filename else "").lower() or ".jpg"
+    if ext not in ALLOWED_EXT:
+        raise HTTPException(status_code=400, detail=f"仅支持: {', '.join(ALLOWED_EXT)}")
+    dest_dir = UPLOAD_PATH / "products"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid.uuid4().hex}{ext}"
+    dest = dest_dir / filename
+    dest.write_bytes(content)
+    return {"url": f"/uploads/products/{filename}"}
+
+
 # ═══════════════════════════════════════════════════════════
 # 零件（商品）管理：与 web 零件商城同源数据
 # ═══════════════════════════════════════════════════════════
@@ -827,6 +869,7 @@ def _product_dict(p: Product, category: ProductCategory | None = None) -> dict:
         "cover_url": p.cover_url,
         "model_3d_url": p.model_3d_url,
         "stock_status": getattr(p.stock_status, "value", p.stock_status) if hasattr(p.stock_status, "value") else p.stock_status,
+        "is_published": bool(getattr(p, "is_published", False)),
         "sales_count": int(p.sales_count or 0),
         "view_count": int(p.view_count or 0),
         "created_at": str(p.created_at),
@@ -844,6 +887,7 @@ class ProductUpdate(BaseModel):
     cover_url: str | None = None
     model_3d_url: str | None = None
     stock_status: str | None = None
+    is_published: bool | None = None
 
 
 @router.get("/products")
@@ -885,6 +929,51 @@ async def admin_get_product(
     product = result.unique().scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=404, detail="零件未找到")
+    return _product_dict(product)
+
+
+@router.delete("/products/{product_id}")
+async def admin_delete_product(
+    product_id: str,
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(get_current_admin),
+):
+    """管理端：删除零件"""
+    result = await db.execute(select(Product).where(Product.id == product_id))
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="零件未找到")
+    await db.delete(product)
+    await db.flush()
+    return {"ok": True}
+
+
+@router.post("/products")
+async def admin_create_product(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    _admin: dict = Depends(get_current_admin),
+):
+    """管理端：新建零件"""
+    body_json = await request.json()
+    name = (body_json.get("name") or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="名称不能为空")
+    slug = (body_json.get("slug") or "").strip()
+    if not slug:
+        slug = f"product-{uuid.uuid4().hex[:8]}"
+    result_check = await db.execute(select(Product).where(Product.slug == slug))
+    if result_check.scalar_one_or_none():
+        slug = f"{slug}-{uuid.uuid4().hex[:6]}"
+    product = Product(
+        name=name,
+        slug=slug,
+        price=float(body_json.get("price") or 0),
+        stock_status="in_stock",
+    )
+    db.add(product)
+    await db.flush()
+    await db.refresh(product)
     return _product_dict(product)
 
 

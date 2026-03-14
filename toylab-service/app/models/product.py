@@ -49,6 +49,7 @@ class Product(Base):
     stock_status: Mapped[str] = mapped_column(
         Enum("in_stock", "out_of_stock", "pre_order"), default="in_stock"
     )
+    is_published: Mapped[bool] = mapped_column(default=False)
     sales_count: Mapped[int] = mapped_column(Integer, default=0)
     view_count: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(

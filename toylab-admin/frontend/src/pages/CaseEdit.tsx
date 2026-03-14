@@ -614,6 +614,18 @@ export default function CaseEdit() {
               />
               <span className="form-hint">仅用于展示，不修改用户账号。创作者 ID 已隐藏。</span>
             </div>
+            <div className="form-row">
+              <label>发布状态</label>
+              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={!!data.is_published}
+                  onChange={(e) => setData((d) => (d ? { ...d, is_published: e.target.checked } : null))}
+                />
+                <span>{data.is_published ? "已发布（web 发现页可见）" : "草稿（仅管理端可见）"}</span>
+              </label>
+              <span className="form-hint">勾选后保存，案例将出现在 web 发现页；取消勾选则隐藏。</span>
+            </div>
           </section>
 
           <section className="form-subsection">

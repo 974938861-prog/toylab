@@ -14,6 +14,7 @@ type ProductData = {
   cover_url: string | null;
   model_3d_url: string | null;
   stock_status: string;
+  is_published: boolean;
 };
 
 type CategoryOption = { id: number; name: string; slug: string; parent_id: number | null; sort_order: number };
@@ -25,6 +26,35 @@ export default function ProductEdit() {
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [coverUploading, setCoverUploading] = useState(false);
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !data) return;
+    const form = new FormData();
+    form.append("file", file);
+    setCoverUploading(true);
+    setError("");
+    try {
+      const res = await api("/api/admin/upload/product-cover", { method: "POST", body: form });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail = (body as { detail?: string }).detail;
+        throw new Error(detail || `上传失败（${res.status}）`);
+      }
+      const url = (body as { url?: string }).url;
+      if (url) {
+        setData((d) => (d ? { ...d, cover_url: url } : null));
+      } else {
+        setError("上传成功但未返回地址");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "封面上传失败");
+    } finally {
+      setCoverUploading(false);
+      e.target.value = "";
+    }
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -58,6 +88,7 @@ export default function ProductEdit() {
           cover_url: data.cover_url,
           model_3d_url: data.model_3d_url,
           stock_status: data.stock_status,
+          is_published: data.is_published,
         }),
       });
       navigate("/parts");
@@ -141,17 +172,69 @@ export default function ProductEdit() {
             </select>
           </div>
           <div className="form-row">
-            <label>封面图 URL</label>
-            <input
-              value={data.cover_url ?? ""}
-              onChange={(e) => setData((d) => (d ? { ...d, cover_url: e.target.value || null } : null))}
-              placeholder="/uploads/... 或完整 URL"
-            />
-            {data.cover_url && (
-              <div style={{ marginTop: "0.5rem" }}>
-                <img src={data.cover_url} alt="封面" className="cover-preview" />
+            <label>发布状态</label>
+            <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={!!data.is_published}
+                onChange={(e) => setData((d) => (d ? { ...d, is_published: e.target.checked } : null))}
+              />
+              <span>{data.is_published ? "已发布（web 商城可见）" : "草稿（仅管理端可见）"}</span>
+            </label>
+            <span className="form-hint">勾选后保存，零件将出现在 web 零件商城；取消勾选则隐藏。</span>
+          </div>
+          <div className="form-row">
+            <label>封面图</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <label
+                  style={{
+                    display: "inline-block",
+                    padding: "0.4rem 0.9rem",
+                    border: "1px solid #d1d5db",
+                    borderRadius: 6,
+                    cursor: coverUploading ? "not-allowed" : "pointer",
+                    fontSize: 14,
+                    background: "#f9fafb",
+                    color: "#374151",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {coverUploading ? "上传中..." : "上传图片"}
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.gif,.webp"
+                    style={{ display: "none" }}
+                    disabled={coverUploading}
+                    onChange={handleCoverUpload}
+                  />
+                </label>
+                <span style={{ fontSize: 13, color: "#6b7280" }}>支持 jpg / png / gif / webp</span>
               </div>
-            )}
+              <input
+                value={data.cover_url ?? ""}
+                onChange={(e) => setData((d) => (d ? { ...d, cover_url: e.target.value || null } : null))}
+                placeholder="或直接填写 /uploads/... 路径"
+                style={{ fontSize: 13, color: "#6b7280" }}
+              />
+              {data.cover_url && (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+                  <img
+                    src={data.cover_url}
+                    alt="封面预览"
+                    style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 6, border: "1px solid #e5e7eb" }}
+                  />
+                  <button
+                    type="button"
+                    className="btn"
+                    style={{ fontSize: 13 }}
+                    onClick={() => setData((d) => (d ? { ...d, cover_url: null } : null))}
+                  >
+                    清除
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
           <div className="form-row">
             <label>3D 模型 URL</label>

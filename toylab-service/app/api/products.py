@@ -12,7 +12,11 @@ PRODUCT_PLACEHOLDER_IMG = "https://placehold.co/200x200/059669/white?text=Part"
 
 @router.get("/products")
 async def list_products(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Product).order_by(Product.created_at.desc()))
+    result = await db.execute(
+        select(Product)
+        .where(Product.is_published == True)  # noqa: E712
+        .order_by(Product.created_at.desc())
+    )
     products = result.scalars().all()
     return [
         {
